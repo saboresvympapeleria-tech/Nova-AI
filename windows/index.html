@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nova IA</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,Segoe UI,Arial,sans-serif;background:#090b16;color:#f7f7ff}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0%,#25214b 0,transparent 42%),#090b16}
+header{height:76px;display:flex;align-items:center;padding:0 28px;border-bottom:1px solid #272a40;gap:14px}
+.logo{width:42px;height:42px;border-radius:14px;background:linear-gradient(135deg,#8b5cf6,#54c8ff);display:grid;place-items:center;font-size:24px;font-weight:800}
+h1{font-size:21px;margin:0}small{color:#8bdcff}main{max-width:900px;margin:28px auto;padding:0 20px;display:flex;flex-direction:column;height:calc(100vh - 132px)}
+#chat{flex:1;overflow:auto;display:flex;flex-direction:column;gap:14px;padding:8px 4px 20px}
+.msg{max-width:78%;padding:14px 17px;border-radius:18px;line-height:1.5;white-space:pre-wrap}
+.user{align-self:flex-end;background:#34305b}.nova{align-self:flex-start;background:#15182a;border:1px solid #292d47}
+.name{display:block;color:#54c8ff;font-size:11px;font-weight:700;margin-bottom:5px}
+form{display:flex;gap:10px;background:#15182a;padding:12px;border:1px solid #292d47;border-radius:22px}
+input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:white;font-size:15px;padding:8px}
+button{border:0;border-radius:15px;padding:12px 20px;background:#8b5cf6;color:white;font-weight:700;cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}.config{margin-top:12px;color:#8f93aa;font-size:12px}.config input{border:1px solid #30334a;border-radius:8px;padding:9px;width:100%;margin-top:6px}
+</style></head>
+<body>
+<header><div class="logo">N</div><div><h1>Nova IA</h1><small>Tu asistente inteligente · Windows</small></div></header>
+<main><section id="chat"><div class="msg nova"><span class="name">NOVA</span>¡Hola! Soy Nova IA. Puedo conversar contigo cuando conectes un servidor de inteligencia artificial.</div></section>
+<form id="form"><input id="message" autocomplete="off" placeholder="Escribe a Nova…" required><button id="send">Enviar</button></form>
+<div class="config">Dirección del servidor de IA (HTTPS). Mientras no configures un servidor, la app mostrará que aún no está conectada.
+<input id="endpoint" placeholder="https://tu-servidor.com/chat"></div></main>
+<script>
+const chat=document.querySelector('#chat'),form=document.querySelector('#form'),message=document.querySelector('#message'),send=document.querySelector('#send'),endpoint=document.querySelector('#endpoint');
+endpoint.value=localStorage.getItem('nova-endpoint')||'';
+endpoint.addEventListener('change',()=>localStorage.setItem('nova-endpoint',endpoint.value.trim()));
+function bubble(text,who){const el=document.createElement('div');el.className='msg '+who;const label=document.createElement('span');label.className='name';label.textContent=who==='user'?'TÚ':'NOVA';el.append(label,document.createTextNode(text));chat.append(el);chat.scrollTop=chat.scrollHeight;return el}
+form.addEventListener('submit',async e=>{e.preventDefault();const prompt=message.value.trim();if(!prompt)return;bubble(prompt,'user');message.value='';send.disabled=true;const pending=bubble('Estoy pensando…','nova');try{const url=endpoint.value.trim();if(!url){pending.lastChild.textContent='Todavía no tengo conectado el servidor de inteligencia artificial. Configura una dirección HTTPS de backend para activar las respuestas.';return;}const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:prompt})});if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();pending.lastChild.textContent=data.reply||'El servidor no devolvió una respuesta.';}catch(err){pending.lastChild.textContent='No pude conectar con el servidor. Comprueba la dirección y que el backend esté activo.';}finally{send.disabled=false;message.focus();}});
+</script></body></html>
